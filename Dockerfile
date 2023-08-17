@@ -3,7 +3,7 @@ FROM nginxproxy/docker-gen:0.10.6-debian AS docker-gen
 FROM nginxproxy/forego:0.17.2-debian AS forego
 
 # Build the final image
-FROM nginx:1.25.1
+FROM openresty/openresty:1.21.4.1-0-jammy
 
 ARG NGINX_PROXY_VERSION
 # Add DOCKER_GEN_VERSION environment variable because 
@@ -23,7 +23,9 @@ RUN apt-get update \
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf \
    && sed -i 's/worker_processes  1/worker_processes  auto/' /etc/nginx/nginx.conf \
    && sed -i 's/worker_connections  1024/worker_connections  10240/' /etc/nginx/nginx.conf \
-   && mkdir -p '/etc/nginx/dhparam'
+   && mkdir -p '/etc/nginx/dhparam' \
+   && mkdir -p '/etc/nginx/dhparam' \
+   && mkdir -p '/var/log/nginx'
 
 # Install Forego + docker-gen
 COPY --from=forego /usr/local/bin/forego /usr/local/bin/forego
