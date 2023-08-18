@@ -20,10 +20,7 @@ RUN apt-get update \
    && rm -r /var/lib/apt/lists/*
 
 # Configure Nginx
-RUN echo "daemon off;" >> /etc/nginx/nginx.conf \
-   && sed -i 's/worker_processes  1/worker_processes  auto/' /etc/nginx/nginx.conf \
-   && sed -i 's/worker_connections  1024/worker_connections  10240/' /etc/nginx/nginx.conf \
-   && mkdir -p '/etc/nginx/dhparam' \
+RUN mkdir -p '/etc/nginx/dhparam' \
    && mkdir -p '/etc/nginx/dhparam' \
    && mkdir -p '/var/log/nginx'
 
@@ -32,6 +29,7 @@ COPY --from=forego /usr/local/bin/forego /usr/local/bin/forego
 COPY --from=docker-gen /usr/local/bin/docker-gen /usr/local/bin/docker-gen
 
 COPY network_internal.conf /etc/nginx/
+COPY openresty.conf /usr/local/openresty/nginx/conf/nginx.conf
 
 COPY app nginx.tmpl LICENSE /app/
 WORKDIR /app/

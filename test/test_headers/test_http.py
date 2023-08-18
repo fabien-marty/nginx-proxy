@@ -102,7 +102,7 @@ def test_server_tokens_on(docker_compose, nginxproxy):
     r = nginxproxy.get("http://web.nginx-proxy.tld/headers")
     assert r.status_code == 200
     assert "Host: web.nginx-proxy.tld" in r.text
-    assert r.headers["Server"].startswith("nginx/")
+    assert r.headers["Server"].startswith("openresty/")
 
 
 def test_server_tokens_off(docker_compose, nginxproxy):
