@@ -99,18 +99,18 @@ def test_no_host_server_tokens_off(docker_compose, nginxproxy):
     ip = nginxproxy.get_ip()
     r = nginxproxy.get(f"https://{ip}/headers", verify=False)
     assert r.status_code == 503
-    assert r.headers["Server"] == "nginx"
+    assert r.headers["Server"] == "openresty"
 
 
 def test_server_tokens_on(docker_compose, nginxproxy):
     r = nginxproxy.get("https://web.nginx-proxy.tld/headers")
     assert r.status_code == 200
     assert "Host: web.nginx-proxy.tld" in r.text
-    assert r.headers["Server"].startswith("nginx/")
+    assert r.headers["Server"].startswith("openresty/")
 
 
 def test_server_tokens_off(docker_compose, nginxproxy):
     r = nginxproxy.get("https://web-server-tokens-off.nginx-proxy.tld/headers")
     assert r.status_code == 200
     assert "Host: web-server-tokens-off.nginx-proxy.tld" in r.text
-    assert r.headers["Server"] == "nginx"
+    assert r.headers["Server"] == "openresty"
