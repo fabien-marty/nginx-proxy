@@ -2,6 +2,8 @@
 
 ## What is it?
 
+**NOT READY AT ALL**
+
 This is a fork of [nginx-proxy](https://github.com/nginx-proxy/nginx-proxy) project *(automated nginx proxy for Docker containers)*
  with `nginx` replaced by `openresty` (`nginx` + `lua`).
 
