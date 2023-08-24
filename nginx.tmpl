@@ -1,4 +1,4 @@
-# nginx-proxy{{ if $.Env.NGINX_PROXY_VERSION }} version : {{ $.Env.NGINX_PROXY_VERSION }}{{ end }}
+ nginx-proxy{{ if $.Env.NGINX_PROXY_VERSION }} version : {{ $.Env.NGINX_PROXY_VERSION }}{{ end }}
 
 {{- /*
      * Global values.  Values are stored in this map rather than in individual
@@ -269,6 +269,7 @@ upstream {{ .Upstream }} {
 }
 {{- end }}
 
+
 # If we receive X-Forwarded-Proto, pass it through; otherwise, pass along the
 # scheme used to connect to this server
 map $http_x_forwarded_proto $proxy_x_forwarded_proto {
@@ -384,8 +385,46 @@ proxy_set_header Proxy "";
     {{- $cert_ok := and (ne $cert "") (exists (printf "/etc/nginx/certs/%s.crt" $cert)) (exists (printf "/etc/nginx/certs/%s.key" $cert)) }}
     {{- $default := eq $globals.Env.DEFAULT_HOST $vhost }}
     {{- $https_method := or (first (groupByKeys $containers "Env.HTTPS_METHOD")) $globals.Env.HTTPS_METHOD "redirect" }}
-    {{- $_ := set $globals.vhosts $vhost (dict "cert" $cert "cert_ok" $cert_ok "containers" $containers "default" $default "https_method" $https_method) }}
+    {{- $healthCheckPath := or (first (groupByKeys $containers "Env.HEALTHCHECK_PATH")) "FALSE" }}
+    {{- $healthCheckInterval := or (first (groupByKeys $containers "Env.HEALTHCHECK_INTERVAL")) "2000" }}
+    {{- $healthCheckTimeout := or (first (groupByKeys $containers "Env.HEALTHCHECK_TIMEOUT")) "1000" }}
+    {{- $healthCheckFall := or (first (groupByKeys $containers "Env.HEALTHCHECK_FALL")) "3" }}
+    {{- $healthCheckRise := or (first (groupByKeys $containers "Env.HEALTHCHECK_RISE")) "2" }}
+    {{- $_ := set $globals.vhosts $vhost (dict "cert" $cert "cert_ok" $cert_ok "containers" $containers "default" $default "https_method" $https_method "healthCheckPath" $healthCheckPath) }}
 {{- end }}
+
+lua_shared_dict healthcheck {{ or $globals.Env.HEALTHCHECK_SHARED_DICT_SIZE "10m" }};
+lua_socket_log_errors off;
+
+init_worker_by_lua_block {
+        local hc = require "resty.upstream.healthcheck"
+
+        {{- range $host, $vhost := $globals.vhosts }}
+            {{- $is_regexp := hasPrefix "~" $host }}
+            {{- $upstream_name := when (or $is_regexp $globals.sha1_upstream_name) (sha1 $host) $host }}
+
+            {{- if ne $vhost.healthCheckPath "FALSE" }}
+                local ok, err = hc.spawn_checker{
+                    shm = "healthcheck",
+                    upstream = "{{ $upstream_name }}",
+                    type = "http",
+                    http_req = "GET {{ $vhost.healthCheckPath }} HTTP/1.0\r\nHost: {{ $host }}\r\n\r\n",
+                    port = nil,
+                    interval = 2000,
+                    timeout = 1000,
+                    fall = 3,
+                    rise = 2,
+                    valid_statuses = {200},
+                    concurrency = 10,
+                }
+                if not ok then
+                    ngx.log(ngx.ERR, "failed to spawn health checker: ", err)
+                    return
+                end
+            {{- end }}
+       {{- end }}
+
+}
 
 {{- /*
      * If needed, create a catch-all fallback server to send an error code to
