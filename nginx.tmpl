@@ -342,7 +342,7 @@ access_log off;
 error_log /dev/stderr;
 
 {{- if $globals.Env.RESOLVERS }}
-resolver {{ $globals.Env.RESOLVERS }};
+resolver {{ $globals.Env.RESOLVERS }} ipv6=off;
 {{- end }}
 
 {{- if (exists "/etc/nginx/proxy.conf") }}
