@@ -1,5 +1,3 @@
-FROM nginxproxy/docker-gen:0.10.6-debian AS docker-gen
-
 FROM nginxproxy/forego:0.17.2-debian AS forego
 
 # Build the final image
@@ -25,9 +23,12 @@ RUN echo "daemon off;" >> /etc/nginx/nginx.conf \
    && sed -i 's/worker_connections  1024/worker_connections  10240/' /etc/nginx/nginx.conf \
    && mkdir -p '/etc/nginx/dhparam'
 
-# Install Forego + docker-gen
+# Install Forego
 COPY --from=forego /usr/local/bin/forego /usr/local/bin/forego
-COPY --from=docker-gen /usr/local/bin/docker-gen /usr/local/bin/docker-gen
+
+# Install custom docker-gen
+COPY ./docker-gen /usr/local/bin/docker-gen
+RUN chmod +x /usr/local/bin/docker-gen
 
 COPY network_internal.conf /etc/nginx/
 

@@ -1,3 +1,8 @@
+> [!IMPORTANT]  
+> This is a maintained fork of [nginx-proxy/nginx-proxy](https://github.com/nginx-proxy/nginx-proxy) to add support for docker health checks thanks to a `docker-gen` change introduced in [this fork](https://github.com/fabien-marty/docker-gen).
+>
+> We maintain (only) a latest linux/amd64 (debian based) docker image at `ghcr.io/fabien-marty/nginx-proxy:latest`
+
 [![Test](https://github.com/nginx-proxy/nginx-proxy/actions/workflows/test.yml/badge.svg)](https://github.com/nginx-proxy/nginx-proxy/actions/workflows/test.yml)
 [![GitHub release](https://img.shields.io/github/v/release/nginx-proxy/nginx-proxy)](https://github.com/nginx-proxy/nginx-proxy/releases)
 ![nginx 1.25.1](https://img.shields.io/badge/nginx-1.25.1-brightgreen.svg)
